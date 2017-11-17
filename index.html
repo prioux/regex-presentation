@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/night.css">
+  <link rel="stylesheet" href="plugin/highlight/style/monokai-sublime.css">
+  <meta charset="utf-8"/>
+</head>
+
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="top">
+
+<section id="title">
+  <h1>Regular Expressions</h1>
+  <h3>Pierre Rioux</h3>
+  <h5>ACE lab Developer Meeting<br>November 2017</h5>
+  <p>
+  <span style="font-size: 10pt; color: #cc0;">"Les regex sont vos amis", hein Nic?</span>
+</section>
+
+<!-- ****************************** -->
+
+<section id="content">
+  <h2>Table of content</h2>
+  <ul>
+    <li>About strings</li>
+    <li>Brief history of regular expressions</li>
+    <li>How they are used</li>
+    <li>Basic matching</li>
+    <li>Special characters</li>
+    <li>Grouping and capturing (TODO)</li>
+    <li>Variants and gotchas (TODO)</li>
+    <li>Examples (TODO)</li>
+  </ul>
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="strings">
+
+<section id="strings1">
+  <h2>About strings</h2>
+
+As programmers, we all use them.
+
+<pre>
+
+  "pierre.rioux@mcgill.ca"             "It was the best of times, it was the worst
+                                        of times, it was the time of the ADM."
+  "Restaurant L'H&eacute;morragie"
+
+  "y\n"          "699.99"              "/data/assembly/1234/V2/new.mnc"        "0"
+
+  "2017-08-23 12:11:40 CBRAIN ERROR: MySql server has gone away"
+
+  "922734,V6,04/03/98,'subject was drunk',/data/store/922734/rest_1b.mnc.gz"
+
+  "AACCCTAACCCTAACCCTAACCCTAAGTTAGGATC...GATTATTATAATCGGATAGCTTTTAGGATATAGGGTATAG"
+
+</pre>
+
+  <ul>
+    <li>Simple, short, with specific meaning</li>
+    <li>Arbitrary prose or text</li>
+    <li>Multi line or single line</li>
+    <li>Structured or not</li>
+    <li>Really large data</li>
+  </ul>
+
+</section>
+
+<!-- ****************************** -->
+
+<section id="strings2">
+  <h2>What we do with them</h2>
+
+  <ul>
+    <li>Validate them:<br>
+      <strong>&#x2714;</strong> "pierre.rioux@mcgill.ca" (legal email address)<br>
+      <strong>&#x274c;</strong> "pierre@rioux@mcgill.ca" (improper email address)<p>
+    </li>
+    <li>Check properties:<br>
+      <strong>&#x2714;</strong> "<em>2017</em>-08-30" (date starts with a 4 digit year)<br>
+      <strong>&#x2714;</strong> "novel.<em>txt</em>" (filename ends with a known extension)<br>
+      <strong>&#x2714;</strong> "<em>/data/cbrain/error.log</em>" (seems to be a pathname)<p>
+    </li>
+    <li>Extract information:<br>
+      "<em>2017-08-30 13:45 Added new user prioux</em>"<br>
+      <strong>&#x2714;</strong> Date = "2017-08-30"<br>
+      <strong>&#x2714;</strong> Time = "13:45"<br>
+      <strong>&#x2714;</strong> Action = "Added new user"<br>
+      <strong>&#x2714;</strong> Argument = "prioux"
+    </li>
+  </ul>
+</section>
+
+<!-- ****************************** -->
+
+<section id="substrings">
+  <h2>The substring libraries</h2>
+
+  Most programming languages have libraries that<br>
+  provide simple <em>substring</em> operations.
+  <p>
+
+  <ul>
+    <li>Scan for <em>fixed strings</em></li>
+    <li>Take and return <em>string positions</em></li>
+    <li>Must build your own code to handle complex cases</li>
+    <li>Code becomes brittle and breaks on unexpected variations</li>
+    <li>Good enough for <strong>simple</strong> properties</li>
+  </ul>
+
+<pre>
+                   "<em>2017-08-20 13:45 Added new user prioux</em>"
+                   "<em>2017-08-21  9:23 Removed user 'prioux'</em>"
+</pre>
+
+</section>
+
+<!-- ****************************** -->
+
+<section id="scanf">
+  <h2>scanf()</h2>
+
+  Old solution, provided by the C library
+
+<pre><code class="c">  int year, month, day;
+  char *action = "xxxxxxxxxxx";
+
+  sscanf("Log: 2017-04-24 Added new user prioux",
+         "Log: %d-%d-%d %s", &amp;year, &amp;month, &amp;day, action);
+</code></pre>
+
+  This solution still suffers from brittleness. You are also limited to
+  just the set of <strong>%X</strong> characters sequences that scanf() supports.
+  <p>
+  There is little need to use scanf() in modern times.
+
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="history">
+
+<section id="history1">
+  <h2>Quick history</h2>
+
+  <ul>
+    <li>Regular expressions come from Formal Language theory</li>
+    <li>They basically encode a finite automaton</li>
+    <li>Kleene, 1950s</li>
+    <li>Later, they started begin used as programming tools</li>
+    <li>Basic support in early UNIX command (ed, sed, grep...)</li>
+  </ul>
+</section>
+
+<!-- ****************************** -->
+
+<section id="history2">
+  <h2>From C to Perl and beyond</h2>
+
+  Henry Spencer's <em>regex</em> library
+  <p>
+  <ul>
+    <li>Released in the late 80s</li>
+    <li>Became quite popular, used in other projects</li>
+    <li>As C programmers, we must <strong>#include</strong> and <strong>ld</strong>...</li>
+  </ul>
+  <p>
+  Larry Wall's <em>Perl</em> interpreter
+  <p>
+  <ul>
+    <li>Larry took Henry's library and 'butchered' it</li>
+    <li>Perl interpreter came with the <em>regex</em> lib inside it</li>
+    <li>The Perl language has built-in operators to use it</li>
+  </ul>
+</section>
+
+<!-- ****************************** -->
+
+<section id="history3">
+  <h2>Now they're everywhere</h2>
+
+  <ul>
+    <li>Perl and TCL started it</li>
+    <li>Newer languages included regexes as a basic type</li>
+    <li>Ruby, Python, PHP, Javascript...</li>
+    <li>In C, you still need an external library, like <em>PCRE</em></li>
+  </ul>
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="how">
+
+<section id="diagram">
+  <h2>How they are used</h2>
+
+  <img src="images/engine_yesno.png">
+  <br>
+  <img src="images/engine_substrings.png">
+  <br>
+  Note: called <em>matching</em>...
+</section>
+
+<!-- ****************************** -->
+
+<section id="first">
+  <h2>My first regex</h2>
+
+  <em class="regex">/abc/</em>
+  <p>
+  Some observations:
+  <ul>
+    <li>We could see this in a program</li>
+    <li>The regex is <em>three</em> characters long: <i>abc</i></li>
+    <li>The <i>/</i> are <em>delimiters</em>, not part of the regex</li>
+    <li>The <em>delimiters</em> can be different, and vary by language</li>
+  </ul>
+</section>
+
+<!-- ****************************** -->
+
+<section id="examples">
+  <h2>Some examples</h2>
+
+    <ul>
+      <li>Perl:<br>
+<pre><code class="perl">$mystring = "I am the eggman";
+$yesno    = $mystring =~ /abc/;
+</code></pre>
+      </li>
+      <li>Ruby:<br>
+<pre><code class="ruby">mystring = "I am the eggman"
+yesno    = mystring =~ /abc/
+yesno    = mystring.match(/abc/)
+yesno    = /abc/.match(mystring)
+</code></pre>
+      </li>
+      <li>PHP:<br>
+<pre><code class="php">$mystring = "I am the walrus";
+$yesno    = preg_match('/abc/', $mystring);
+</code></pre>
+      </li>
+      <li>Javascript:<br>
+<pre><code class="php">var mystring = "Goo goo g'joob";
+var yesno    = /abc/.test(string);
+</code></pre>
+      </li>
+    </ul>
+
+</section>
+
+<!-- ****************************** -->
+
+<section id="whatitmeans">
+  <h2>What does <i>/abc/</i> even mean?</h2>
+
+  This is a simple <em>substring match</em>. The regexp<br>
+  will <strong>search</strong> a string and return true if:
+  <p>
+  <ul>
+    <li>The string contains the exact substring <em>"abc"</em></li>
+    <li>The substring can be anywhere</li>
+    <li>The letters MUST be lowercase</li>
+  </ul>
+  <p>
+  Match examples in <em>yellow</em>:<br>
+  <p>
+<pre class="compact large">
+<strong>&#x2714;</strong>  "<em>abc</em> are three letters"
+
+<strong>&#x2714;</strong>  "I learned my <em>abc</em> when I was three"
+
+&#x274c;  "Buy three CDs at ABC Music!"
+</pre>
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="basics">
+
+<section id="basics1">
+  <h2>Basics 1</h2>
+  Each character in a regex is important.
+  <p>
+  Some are just meant to match <strong>themselves</strong>:
+  <ul>
+    <li>Letters of the alphabet: a, b, c, ..., A, B, C, ... Z</li>
+    <li>The digits: 0, 1, 2, 3, ..., 9</li>
+    <li>The blank characters (space, tab etc)</li>
+    <li>A few special characters: =, @, #, !, -</li>
+  </ul>
+  <p>
+  These two regex match their exact string inside:
+  <p>
+  <em class="regex">/I am clown@circus/</em>
+  <p>
+  <em class="regex">/H2Y 4A2/</em>
+  <p>
+  (This is basically like a substring search)
+</section>
+
+<!-- ****************************** -->
+
+<section id="basics2">
+  <h2>Basics 2</h2>
+  Most special characters and punctuation <em>have special meanings</em>.
+  <p>
+  <ul>
+    <li>The <i>.</i> (dot, period) match <em>ANY</em> character <strong>except the newline</strong></li>
+    <li>The <i>[</i> and <i>]</i> are used for character ranges</li>
+    <li>The <i>*</i> is a <em>repeat</em> indicator</li>
+    <li>The <i>?</i> is a <em>optional</em> indicator</li>
+    <li>The <i>\</i> (backslash) introduces special matching rules</li>
+  </ul>
+  <p>
+  The next few slides will give examples for each of these cases.
+</section>
+
+<!-- ****************************** -->
+
+<section id="dot">
+  <h2>The <i>.</i> in a regex</h2>
+  <em class="regex">/st..k/</em> will match any string that contain any of:
+<p>
+<pre class="compact large">
+stack stalk stank stark steak stick
+stink stock stork stuck stunk stEAk
+st!2k st87k st  k st[[k st--k stp\k
+
+         "talle<em>st sk</em>yscraper"
+</pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="squarebrackets">
+  <h2>The <i>[ ]</i> square brackets</h2>
+  Between the [ ] are the characters allowed at that position.
+  <p>
+<pre class="compact">
+[ac/dc]       Matches the character "a", "c", "/" or "d"
+[0123459876]  Matches a single digit
+[0-9]         Matches a single digit
+[dr.]         Matches "d", "r" or "."
+[a-z]         All lowercase letters
+[a-zA-Z]      All letters
+[a-z-]        All lowercase letters and "-" too
+</pre>
+  <ul>
+    <li>The <i>.</i> just means the period character</li>
+    <li>The <i>-</i> can be used to represent a range</li>
+    <li>Allowed characters can be listed in any order</li>
+    <li>Important: whatever's inside will always
+        match just <em>one</em> character in the string</li>
+  </ul>
+  <p>
+  Postal Code:<br>
+  <em class="smallregex">/[ABCEGHJKLMNPRSTVXY][0-9][A-Z] [0-9][A-Z][0-9]/</em>
+</section>
+
+<!-- ****************************** -->
+
+<section id="caret">
+  <h2>The <i>^</i> in square brackets</h2>
+  If a [ ] range <em>starts</em> with the <i>^</i> character,<br>
+  it means all characters <em>not</em> in the range.
+  <p>
+<pre class="compact medium">
+[^XYZ]      Any character other than "X", "Y" or "Z"
+[^a-z]      One that is not a lowercase letter
+[^.]        Not a "."
+[^0-9]      Not a digit
+</pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="question1">
+  <h2>The <i>?</i> means zero or once</h2>
+  The <i>?</i> character applies to whatever precedes it.
+  <p>
+  It allows the regex to:
+  <ul>
+    <li>match it 0 times (make it optional)</li>
+    <li>match it 1 time (like if the <i>?</i> wasn't there)</li>
+  </ul>
+  <p>
+  <em class="regex">/Pierr?e Rioux?/</em>
+  <p>
+<pre class="compact large">
+<strong>&#x2714;</strong> "Piere Riou"
+<strong>&#x2714;</strong> "Pierre Rioux"
+<strong>&#x2714;</strong> "Pierre Riou"
+<strong>&#x274c;</strong> "Piee Rioux"
+</pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="question2">
+  <h2>The <i>?</i> means zero or once</h2>
+  <em class="regex">/[A-Z]?[a-z0-9]?-X/</em>
+  <p>
+<pre class="compact large">
+<strong>&#x2714;</strong> "-X"
+<strong>&#x2714;</strong> "G-X
+<strong>&#x2714;</strong> "9-X"
+<strong>&#x2714;</strong> "Pa-X"
+<strong>&#x2714;</strong> "P8-X"
+<strong>&#x274c;</strong> "4Z-X"
+</pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="star1">
+  <h2>The <i>*</i> means zero or more</h2>
+  The <i>*</i> character applies to whatever precedes it.
+  <p>
+  It allows the regex to:
+  <ul>
+    <li>match it 0 times (make it optional)</li>
+    <li>match it 1 time (like if the <i>*</i> wasn't there)</li>
+    <li>match two or more times</li>
+  </ul>
+  <p>
+  <em class="regex">/Pierr*e Rioux*/</em>
+  <p>
+<pre class="compact large">
+<strong>&#x2714;</strong> "Piere Riou"
+<strong>&#x2714;</strong> "Pierre Rioux"
+<strong>&#x2714;</strong> "Pierrrrrrrrre Riouxxxxxxxx"
+<strong>&#x274c;</strong> "Piee Riouxxxxxxxx"
+</pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="star2">
+  <h2>The <i>*</i> means zero or more</h2>
+  <em class="regex">/[A-Z]*[a-z0-9]*-X/</em>
+  <p>
+<pre class="compact large">
+<strong>&#x2714;</strong> "-X"
+<strong>&#x2714;</strong> "G-X
+<strong>&#x2714;</strong> "9-X"
+<strong>&#x2714;</strong> "Pa-X"
+<strong>&#x2714;</strong> "P8-X"
+<strong>&#x2714;</strong> "COOKIE-X"
+<strong>&#x2714;</strong> "m0nst3r-X"
+<strong>&#x2714;</strong> "COOKIEm0nst3r-X"
+<strong>&#x274c;</strong> "CookieMonst3r-X"
+</pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="plus">
+  <h2>The <i>+</i> means one or more</h2>
+  The <i>+</i> character applies to whatever precedes it.
+  <p>
+  <em class="regex">/[0-9]+_V[0-9]+/</em>
+  <p>
+<pre class="compact large">
+<strong>&#x2714;</strong> "0_V0"
+<strong>&#x2714;</strong> "528222_V12"
+<strong>&#x274c;</strong> "_V7165"
+<strong>&#x274c;</strong> "622122_V"
+</pre>
+  <p>
+  Generally, <em class="regex">/x+/</em> is the same as <em class="regex">/xx*/</em> for all <em class="regex">x</em>.
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="specials">
+
+<section id="backslash1">
+  <h2>The <i>\</i> backslash character</h2>
+  In front of special characters, it just makes
+  them less special.
+  <p>
+  <em class="regex">/abc\*def\\xyz\.txt/</em>
+  <p>
+  This just matches the string <em>'abc*def\xyz.txt'</em> (15 characters)
+</section>
+
+<!-- ****************************** -->
+
+<section id="backslash2">
+  <h2>The <i>\</i> backslash character</h2>
+  In front of some letters, it allows<br>
+  expressing <strong>unprintable</strong> or blank characters.
+  <p>
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>Unprintable character</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>\n</td>
+        <td>newline (ASCII 10)</td>
+      </tr>
+      <tr>
+        <td>\t</td>
+        <td>tab (ASCII 9)</td>
+      </tr>
+      <tr>
+        <td>\r</td>
+        <td>carriage return (ASCII 13)</td>
+      </tr>
+      <tr>
+        <td>\e</td>
+        <td>escape (ASCII 27)</td>
+      </tr>
+      <tr>
+        <td>...</td>
+        <td>there are many others...</td>
+      </tr>
+    <tbody>
+  </table>
+</section>
+
+<!-- ****************************** -->
+
+<section id="backslash3">
+  <h2>The <i>\</i> backslash character</h2>
+  In front of some <em>other</em> letters, it<br>
+  matches useful character sets or ranges.
+  <p>
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>Set of characters</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>\s</td>
+        <td>Any whitespace: space, tab, newline, etc</td>
+      </tr>
+      <tr>
+        <td>\d</td>
+        <td>Any digit. Similar to <em class="smallregex">[0-9]</em></td>
+      </tr>
+      <tr>
+        <td>\w</td>
+        <td>Any character used in an identifier: <em class="smallregex">[a-zA-Z0-9_]</em></td>
+      </tr>
+      <tr>
+        <td>\S</td>
+        <td>The opposite of \s</td>
+      </tr>
+      <tr>
+        <td>\D</td>
+        <td>The opposite of \d</td>
+      </tr>
+      <tr>
+        <td>\W</td>
+        <td>The opposite of \w</td>
+      </tr>
+    <tbody>
+  </table>
+</section>
+
+<!-- ****************************** -->
+
+<section id="anchoring1">
+  <h2>Anchoring</h2>
+  The <i>^</i> and <i>$</i> characters forces
+  the matching to happen, respectively, at the
+  <em>beginning</em> or <em>end</em> of the string.
+  <p>
+  <em class="regex">/\w+@\w+\.ca/</em>
+  <p>
+<pre class="compact large">
+<strong>&#x2714;</strong> "<em>pierre@circus.ca</em>"
+<strong>&#x2714;</strong> "My email is <em>pierre@circus.ca</em>, thanks"
+</pre>
+  <p>
+  <em class="regex">/^\w+@\w+\.ca$/</em>
+  <p>
+<pre class="compact large">
+<strong>&#x2714;</strong> "<em>pierre@circus.ca</em>"
+<strong>&#x274c;</strong> "My email is pierre@circus.ca, thanks"
+</pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="anchoring2">
+  <h2>Anchoring</h2>
+
+  Within a multi-line string:
+  <p>
+  <ul>
+    <li><i>^</i> matches the beginning of any line;
+        it is a zero-width match.</li>
+    <li><i>$</i> matches the end of any line,
+        it is a zero-width match just before the newline character.</li>
+  </ul>
+  <p>
+<pre class="compact medium">
+   mystring = "amaryjo<i>\n</i>mary<i>\n</i>ryjo<i>\n</i>"
+
+<strong>&#x2714;</strong> mystring =~ /ary$/    # "amaryjo<i>\n</i>m<em>ary</em><i>\n</i>ryjo<i>\n</i>"
+<strong>&#x2714;</strong> mystring =~ /^mar/    # "amaryjo<i>\n</i><em>mar</em>y<i>\n</i>ryjo<i>\n</i>"
+<strong>&#x2714;</strong> mystring =~ /^ryjo$/  # "amaryjo<i>\n</i>mary<i>\n</i><em>ryjo</em><i>\n</i>"
+</pre>
+<p>
+   Anchoring a regex can significantly improve performance when scanning
+   large strings, or with complex regular expressions.
+</section>
+
+<!-- ****************************** -->
+
+<section id="pipe">
+  <h2>The <i>|</i> vertical bar</h2>
+  Within a regex, the <i>|</i> symbol means to
+  try to match what's on the left <strong>or</strong> what's on the
+  right; each side is a full regex.
+  <p>
+  <em class="regex">/taxi$|tra?in|h.ver.raft/</em>
+  <p>
+<pre class="compact medium">
+<strong>&#x2714;</strong> "My <em>hovercraft</em> is full of eels"
+<strong>&#x2714;</strong> "Planes, <em>train</em>s, and automobiles"
+<strong>&#x274c;</strong> "I took a taxi and paid $20"
+</pre>
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="advanced">
+
+<section id="notes">
+<pre>
+# SLIDES TODO
+advanced
+  - capturing
+  - greedy / non greedy
+  - modifiers: /i /x
+
+building
+  - left to right
+
+applying
+  - operators
+
+reading
+
+global
+  - maintain state
+
+variants
+   table
+
+unix commands
+
+       - grep, egrep, fgrep
+
+   62  Nov-15 23:00:19 grep 's....' s
+   63  Nov-15 23:00:24 grep 's....$' s
+   64  Nov-15 23:00:31 grep '^s....$' s
+   65  Nov-15 23:00:46 grep '^s....$' s | cut -c2
+   66  Nov-15 23:00:53 grep '^s....$' s | cut -c2 | uniq -c
+   67  Nov-15 23:01:10 grep '^s....$' s | grep '^st'
+   68  Nov-15 23:01:56 grep '^s....$' s | grep '^st..k'
+</pre>
+
+</section>
+
+<!-- ****************************** -->
+
+<section id="grouping">
+  <h2>Grouping with ( )</h2>
+</section>
+
+<!-- ****************************** -->
+
+<section id="xxx">
+  <h2>Capturing with ( )</h2>
+</section>
+
+<!-- ****************************** -->
+
+<section id="xxx">
+  <h2>Title Here</h2>
+  Content
+</section>
+
+<!-- ****************************** -->
+
+<section id="xxx">
+  <h2>Title Here</h2>
+  Content
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="end">
+
+<section id="final">
+  <em class="regex">/(thank\s+you|thanks)!/i</em>
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+    </div>
+  </div>
+
+  <!-- Main reveal.js setup -->
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.js"></script>
+  <script src="plugin/highlight/highlight.js"></script>
+  <script>
+    Reveal.initialize(
+    { slideNumber: true, history: true }
+    );
+    hljs.initHighlightingOnLoad();
+  </script>
+
+  <!-- Styles -->
+
+  <style>
+
+    /* Headers */
+
+    .reveal h1,
+    .reveal h2,
+    .reveal h3,
+    .reveal h4,
+    .reveal h5 {
+      color: #ffffff;
+      text-shadow: 0.0em 0.0em 0.2em #0cc;
+    }
+
+    /* Text styles: em, strong, b, i */
+
+    .reveal em {
+      color: yellow;
+      font-style: normal; /* yes please! */
+    }
+    .reveal strong {
+      color: #0ff;  /* funny, I'm using RGB with only three digits today */
+    }
+    .reveal b {
+      color: #00f;
+    }
+    .reveal i {
+      color: #f00;
+      font-style: normal; /* yes please! */
+    }
+
+    /* Misc */
+
+    .reveal section img {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+    .reveal pre {
+      background: #033;
+      padding: 0.2em 0.5em 0.3em 0.5em;
+      width: auto;
+    }
+    .reveal pre.compact {
+      display: inline-block;
+    }
+    .reveal pre.large {
+      font-size: 120%;
+    }
+    .reveal pre.medium {
+      font-size: 100%;
+    }
+    .reveal .cell {
+      display: table-cell;
+    }
+    .reveal th {
+      color: #0aa;
+    }
+    .reveal .transp {
+      background-color: transparent;
+    }
+    .reveal .smallcontent tr td {
+      font-size: 70%;
+    }
+
+    .reveal em.regex {
+      font-size: 150%;
+    }
+
+    .reveal em.smallregex {
+      font-size: 100%;
+    }
+
+  </style>
+</body>
+
+</html>
