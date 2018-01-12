@@ -502,6 +502,41 @@ And also:
   Generally, <em class="regex">/x+/</em> is the same as <em class="regex">/xx*/</em> for all <em class="regex">x</em>.
 </section>
 
+<!-- ****************************** -->
+
+<section id="curly">
+  <h2>The <i>{}</i> mean repeat counts</h2>
+  The <i>{}</i> characters can be used<br>
+  to specify how many times something must match.
+  <p>
+  <table>
+    <thead>
+      <tr>
+        <th>Regex</th>
+        <th>Meaning</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><em class="smallregex">/[0-9]{3}/</em></td>
+        <td>Three digits. Same as <em class="smallregex">/[0-9][0-9][0-9]/</em></td>
+      </tr>
+      <tr>
+        <td><em class="smallregex">/[0-9]{3,}/</em></td>
+        <td>At least 3 digits</td>
+      </tr>
+      <tr>
+        <td><em class="smallregex">/[0-9]{,7}/</em></td>
+        <td>Up to 7 digits (including 0)</td>
+      </tr>
+      <tr>
+        <td><em class="smallregex">/[0-9]{3,7}/</em></td>
+        <td>Between 3 to 7 digits</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
 </section>
 
 <!-- ############################## -->
@@ -917,9 +952,9 @@ while ("one two three" =~ <em class="smallregex">/(\w+)/gi</em>) {
 <!-- ############################## -->
 <!-- ############################## -->
 
-<section id="variants">
+<section id="misc">
 
-<section id="variants1">
+<section id="variants">
   <h2>Regex engines differ</h2>
   <table>
     <thead>
@@ -964,6 +999,26 @@ while ("one two three" =~ <em class="smallregex">/(\w+)/gi</em>) {
   </table>
   <p>
   <strong>Note:</strong> Wikipedia has some nice, dedailed comparison tables.
+</section>
+
+<!-- ****************************** -->
+
+<section id="performance">
+  <h2>Performance and<br>catastrophic backtracking</h2>
+  <em class="regex">/(x+x+)+Y/</em>
+  <p>
+  <pre class="compact">"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxY"</pre>
+  <p>
+  <pre class="compact">"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</pre>
+  <p>
+  <small>Ref: <a href="https://www.regular-expressions.info/catastrophic.html">https://www.regular-expressions.info/catastrophic.html</a></small>
+</section>
+
+<!-- ****************************** -->
+
+<section id="security">
+  <h2>Security: perl embedded code!</h2>
+  <em class="regex">/abc(?{ print "hello" })def/</em>
 </section>
 
 </section>
