@@ -347,14 +347,17 @@ var yesno    = /abc/.test(string);
 
 <section id="dot">
   <h2>The <i>.</i> in a regex</h2>
-  <em class="regex">/st..k/</em> will match any string that contain any of:
+  <em class="regex">/st..k/</em> will match any these 5 letter strings:
 <p>
 <pre class="compact large">
 stack stalk stank stark steak stick
 stink stock stork stuck stunk stEAk
-st!2k st87k st  k st[[k st--k stp\k
-
-         "talle<em>st sk</em>yscraper"
+st!2k st87k st__k st[]k st--k stp\k
+</pre>
+<p>
+And also:
+<pre class="compact large">
+"talle<em>st sk</em>yscraper"
 </pre>
 </section>
 
@@ -426,15 +429,16 @@ st!2k st87k st  k st[[k st--k stp\k
 
 <section id="question2">
   <h2>The <i>?</i> means zero or once</h2>
-  <em class="regex">/[A-Z]?[a-z0-9]?-X/</em>
+  <em class="regex">/X-[A-Z]?[a-z0-9]?-X/</em>
   <p>
 <pre class="compact large">
-<strong>&#x2714;</strong> "-X"
-<strong>&#x2714;</strong> "G-X
-<strong>&#x2714;</strong> "9-X"
-<strong>&#x2714;</strong> "Pa-X"
-<strong>&#x2714;</strong> "P8-X"
-<strong>&#x274c;</strong> "4Z-X"
+<strong>&#x2714;</strong> "X--X"
+<strong>&#x2714;</strong> "X-G-X
+<strong>&#x2714;</strong> "X-9-X"
+<strong>&#x2714;</strong> "X-Pa-X"
+<strong>&#x2714;</strong> "X-P8-X"
+<strong>&#x274c;</strong> "X-PA-X"
+<strong>&#x274c;</strong> "X-4Z-X"
 </pre>
 </section>
 
@@ -465,18 +469,18 @@ st!2k st87k st  k st[[k st--k stp\k
 
 <section id="star2">
   <h2>The <i>*</i> means zero or more</h2>
-  <em class="regex">/[A-Z]*[a-z0-9]*-X/</em>
+  <em class="regex">/X-[A-Z]*[a-z0-9]*-X/</em>
   <p>
 <pre class="compact large">
-<strong>&#x2714;</strong> "-X"
-<strong>&#x2714;</strong> "G-X
-<strong>&#x2714;</strong> "9-X"
-<strong>&#x2714;</strong> "Pa-X"
-<strong>&#x2714;</strong> "P8-X"
-<strong>&#x2714;</strong> "COOKIE-X"
-<strong>&#x2714;</strong> "m0nst3r-X"
-<strong>&#x2714;</strong> "COOKIEm0nst3r-X"
-<strong>&#x274c;</strong> "CookieMonst3r-X"
+<strong>&#x2714;</strong> "X--X"
+<strong>&#x2714;</strong> "X-G-X
+<strong>&#x2714;</strong> "X-9-X"
+<strong>&#x2714;</strong> "X-Pa-X"
+<strong>&#x2714;</strong> "X-P8-X"
+<strong>&#x2714;</strong> "X-COOKIE-X"
+<strong>&#x2714;</strong> "X-m0nst3r-X"
+<strong>&#x2714;</strong> "X-COOKIEm0nst3r-X"
+<strong>&#x274c;</strong> "X-CookieMonst3r-X"
 </pre>
 </section>
 
@@ -670,34 +674,336 @@ st!2k st87k st  k st[[k st--k stp\k
 <!-- ############################## -->
 <!-- ############################## -->
 
-<section id="advanced">
+<section id="advanced1">
 
-<section id="notes">
-<pre>
-# SLIDES TODO
-advanced
-  - capturing
-  - greedy / non greedy
-  - modifiers: /i /x
+<section id="grouping1">
+  <h2>Grouping with <i>(</i> and <i>)</i></h2>
+  The parentheses create a group;<br>the group can
+  be modified with <i>?</i>, <i>*</i> etc.
+  <p>
+  <em class="regex">/(Malkovitch)+/</em>
+  <p>
+<pre class="compact medium">
+<strong>&#x2714;</strong> "My name is <em>Malkovitch</em>, indeed."
+<strong>&#x2714;</strong> "Being John <em>MalkovitchMalkovitchMalkovitchMalkovitch</em>."
+</pre>
+</section>
 
-building
-  - left to right
+<!-- ****************************** -->
 
-applying
-  - operators
+<section id="grouping2">
+  <h2>Grouping is useful with <i>|</i></h2>
+  <p>
+  <em class="regex">/a (robot|(human)+|vegetable)? truly/</em>
+  <p>
+<pre class="compact medium">
+<strong>&#x2714;</strong> "I am <em>a robot truly</em>"
+<strong>&#x2714;</strong> "I am <em>a vegetable truly</em>"
+<strong>&#x2714;</strong> "I am <em>a humanhuman truly</em>"
+<strong>&#x2714;</strong> "I am <em>a  truly</em>"
+<strong>&#x274c;</strong> "I am a robothumanvegetable truly"
+</pre>
+</section>
 
-reading
+<!-- ****************************** -->
 
-global
-  - maintain state
+<section id="grouping3">
+  <h2>Each regex within a group is independent</h2>
+  <p>
+  <em class="regex">/(a[0-9]z)+/</em>
+  <p>
+<pre class="compact medium">
+<strong>&#x2714;</strong> "<em>a0za0za0za0za0z</em>"
+<strong>&#x2714;</strong> "<em>a0za1za9za3za7za4z</em>"
+</pre>
+  <p>
+  The <i>+</i> applies to the regular expression, not the matched string.
+</section>
 
-variants
-   table
+</section>
 
-unix commands
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
 
-       - grep, egrep, fgrep
+<section id="advanced2">
 
+<section id="capturing1">
+  <h2>Capturing with <i>()</i></h2>
+  <p>
+  <img src="images/engine_substrings.png">
+</section>
+
+<!-- ****************************** -->
+
+<section id="capturing2">
+  <h2>Capturing with <i>()</i></h2>
+These are the string values for six task status in CBRAIN:
+<pre class="compact medium">
+status = "Restarting Setup"
+status = "Restarting Cluster"
+status = "Restarting PostProcessing"
+status = "Recovering Setup"
+status = "Recovering Cluster"
+status = "Recovering PostProcessing"
+</pre>
+<pre class="compact medium">matchinfo = status.match <em class="smallregex">/(Recovering|Restarting) (\S+)/</em>
+operation = matchinfo[0]
+stage     = matchinfo[1]
+</pre>
+  <p>
+  When matching using Ruby, we get the first word into variable <em>operation</em>
+  and the second word into variable <em>stage</em>.
+</section>
+
+<!-- ****************************** -->
+
+<section id="capturing3">
+  <h2>Capturing with <i>()</i></h2>
+  Perl uses global variables <em>$1</em>, <em>$2</em>, <em>$3</em>, etc
+  <p>
+<pre class="compact medium"><code class="perl">my $status    = "Restarting PostProcessing"
+$status       =~ /(Recovering|Restarting) (\S+)/;
+my $operation = $1;
+my $stage     = $2;
+</code></pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="backreference">
+  <h2>Backreferences:<br><i>\1</i> match the first capture</h2>
+  The special <i>\1</i>, <i>\2</i> etc refer to the values<br>
+  captured by the first, second etc parenthesis.
+  <p>
+  <em class="regex">/([a-z]+)-\d+-([a-z]+)/</em>
+  <p>
+<pre class="compact medium">
+<strong>&#x2714;</strong> "Product code <em>abc-123-def</em> is sold out"
+<strong>&#x2714;</strong> "Product code <em>abc-123-abc</em> is sold out"
+</pre>
+  <p>
+  <em class="regex">/([a-z]+)-\d+-\1/</em>
+  <p>
+<pre class="compact medium">
+<strong>&#x274c;</strong> "Product code abc-123-def is sold out"
+<strong>&#x2714;</strong> "Product code <em>abc-123-abc</em> is sold out"
+</pre>
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="greediness">
+
+<section id="greed1">
+  <h2>By default, regex are <em>greedy</em></h2>
+  <em class="regex">/[a-z]+x/</em><br>
+  <p>
+<pre class="compact large">
+<strong>&#x274c;</strong> "0123<em>abcdx</em>yzabcdxyzabcdxyz0123"
+<strong>&#x2714;</strong> "0123<em>abcdxyzabcdxyzabcdx</em>yz0123"
+</pre>
+  <p>
+  <em class="regex">/[0-9]+$/</em><br>
+  <p>
+<pre class="compact large">
+<strong>&#x274c;</strong> "Beverly Hills 9021<em>0</em>"
+<strong>&#x2714;</strong> "Beverly Hills <em>90210</em>"
+</pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="greed2">
+  <h2>Some engines support <em>non-greedy</em> matching with <i>?</i></h2>
+  <em class="regex">/[a-z]+<i>?</i>x/</em><br>
+  <p>
+<pre class="compact large">
+<strong>&#x274c;</strong> "0123<em>abcdxyzabcdxyzabcdx</em>yz0123"
+<strong>&#x2714;</strong> "0123<em>abcdx</em>yzabcdxyzabcdxyz0123"
+</pre>
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="modifiers">
+
+<section id="modifiers1">
+  <h2>Modifiers: for the regex engine and parser</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Modifier</th>
+        <th>Effect</th>
+        <th>Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>i</td>
+        <td>Regex is case-insensitive</td>
+        <td><pre>"H2y" =~ <em class="smallregex">/[a-z][0-9][a-z]/i</em></pre></td>
+      </tr>
+      <tr>
+        <td>g</td>
+        <td>Regex match globally, in turn from position of last match</td>
+        <td><pre># This is a Perl example
+while ("one two three" =~ <em class="smallregex">/(\w+)/gi</em>) {
+  print "$1\n"; # will execute 3 times
+}
+</pre>
+        </td>
+      </tr>
+      <tr>
+        <td>x</td>
+        <td>Allow spaces and comments for lisibility</td>
+        <td><pre>email =~ <em class="smallregex">/
+     ([a-z0-9\.\-]+)  # username
+     @
+     ([a-z0-9\.\-]+)  # hostname
+     /x</em></pre>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ****************************** -->
+
+<section id="modifiers2">
+<h2>Example of <i>x</i> in CBRAIN</h2>
+<pre><code class="ruby nomaxheight">  # Returns true if the given +userfile+ is named according
+  # to the LORIS CCNA Phantom convention for integration with CBRAIN,
+  # which means we can find a subject ID and a visit ID.
+  #
+  # Example: 'ibis_417879_Initial_MRI_t1w_001.mnc'
+  #          'ibis_123456_lego_phantom_SD_ABCD_20001212_12CH_t1w_0183.mnc
+  #
+  # The visit ID can be a complex string with underscores in it.
+  # See the regex in the code.
+  #
+  # Returns the subject ID and the visit ID if the convention
+  # is respected; for the example, the "417879" and "Initial_MRI" parts.
+  def named_according_to_LORIS_convention?(userfile)
+    if userfile.name =~ /\A
+                             [a-zA-Z0-9]+            # arbitrary prefix
+                             _(\d\d\d\d\d\d)         # $1 Subject ID
+                             _(Initial_MRI|          # $2 Visit, one of "Initial_MRI" or ...
+                               (lego|human)
+                               _phantom
+                               _(L1|SD)
+                               _([A-Z]{3,4})         # three or four uppercase letters
+                               _\d\d\d\d \d\d \d\d   # year month day
+                               (_(12CH|32CH))?       # optional suffix of Visit
+                              )
+                        /x
+      [ Regexp.last_match[1], Regexp.last_match[2] ]
+    end
+  end
+</code></pre>
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="variants">
+
+<section id="variants1">
+  <h2>Regex engines differ</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Software</th>
+        <th>Differences</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Perl</td>
+        <td>has everything!</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Ruby</td>
+        <td>mostly like Perl</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>PHP</td>
+        <td>mostly like Perl</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Javascript</td>
+        <td>more limited</td>
+        <td>no comments with <i>/x</i></td>
+      </tr>
+      <tr>
+        <td>grep, sed, etc</td>
+        <td>Basic: No <i>+</i>, <i>|</i>, <i>\w</i>, <i>\s</i>, <i>\d</i>, etc</td>
+        <td>Use <em>grep -P</em> to get Perl's engine; modifiers are options.</td>
+      </tr>
+      <tr>
+        <td>egrep</td>
+        <td>is <em>grep</em>, but adds <i>|</i></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+  <strong>Note:</strong> Wikipedia has some nice, dedailed comparison tables.
+</section>
+
+</section>
+
+<!-- ############################## -->
+<!-- ############################## -->
+<!-- ############################## -->
+
+<section id="examples">
+
+<section id="example1a">
+  <h2>Example 1: <em class="smallregex">/st..k/</em></h2>
+  How did I find the words in a previous <a href="#/dot">slide</a>?
+  <p>
+  I have a file at home called <strong>'s'</strong>. Its content:
+<pre class="compact">
+s
+sa
+sabbath
+sabbatical
+Sabina
+Sabine
+sable
+sabotage
+sabra
+sac
+saccharine
+sachem
+Sachs
+sack
+(about 2600 more lines omitted)
+</pre>
+</section>
+
+<!-- ****************************** -->
+
+<section id="example1b">
+  <h2>Example 1: <em class="smallregex">/st..k/</em></h2>
+  Here's part of my <strong>bash</strong> bash history:
+<pre class="compact">
    62  Nov-15 23:00:19 grep 's....' s
    63  Nov-15 23:00:24 grep 's....$' s
    64  Nov-15 23:00:31 grep '^s....$' s
@@ -706,33 +1012,69 @@ unix commands
    67  Nov-15 23:01:10 grep '^s....$' s | grep '^st'
    68  Nov-15 23:01:56 grep '^s....$' s | grep '^st..k'
 </pre>
-
+<p>
+<ul>
+  <li>Command 62: too many words</li>
+  <li>Command 63: some extra, like <em>suspect</em></li>
+  <li>Command 64: ok, 364 results</li>
+  <li>Command 65: extract second letter</li>
+  <li>Command 66: count second letters; t=71</li>
+  <li>Command 67: have a quick look</li>
+  <li>Command 68: choose the 11 that end in <strong>k</strong></li>
+</ul>
 </section>
 
 <!-- ****************************** -->
 
-<section id="grouping">
-  <h2>Grouping with ( )</h2>
+<section id="example2a">
+  <h2>Example 2: CBRAIN code scan</h2>
+  Changes in the <strong>Pathname</strong> Ruby library forced the<br>
+  CBRAIN team to review all calls to these four methods:
+  <p>
+<pre class="medium compact">
+.present?()
+.presence()
+.blank?()
+.empty?()
+</pre>
+  <p>
+  The details why are not important here,<br>
+  suffice to say it was for the R5 release.
 </section>
 
 <!-- ****************************** -->
 
-<section id="xxx">
-  <h2>Capturing with ( )</h2>
-</section>
-
-<!-- ****************************** -->
-
-<section id="xxx">
-  <h2>Title Here</h2>
-  Content
-</section>
-
-<!-- ****************************** -->
-
-<section id="xxx">
-  <h2>Title Here</h2>
-  Content
+<section id="example2b">
+  <h2>Example 2: CBRAIN code scan</h2>
+  I ran this bash pipe in the CBRAIN source directory:
+<pre class="compact">
+find . -type f -name "*.rb" -print | \
+xargs grep -B3 -A3 -E '\.empty\?|\.present\?|\.presence|\.blank\?' | \
+highlight -l -r '\.empty\?|\.present\?|\.presence|\.blank\?' yellow | \
+less
+</pre>
+  <p>
+  This created a report of about 9000 lines:
+<pre class="compact supersmall">
+--
+./BrainPortal/app/models/cluster_task.rb-  # to a location different than the original task directory.
+./BrainPortal/app/models/cluster_task.rb-  def make_available(userfile, file_path, userfile_sub_path = nil, start_dir = nil)
+./BrainPortal/app/models/cluster_task.rb-    cb_error "File path argument must be relative" if
+./BrainPortal/app/models/cluster_task.rb:      file_path.to_s<em>.blank?</em> || file_path.to_s =~ /\A\//
+./BrainPortal/app/models/cluster_task.rb-
+./BrainPortal/app/models/cluster_task.rb-    # Determine starting dir for relative symlink target calculation
+./BrainPortal/app/models/cluster_task.rb-    base_dir = start_dir || self.full_cluster_workdir
+--
+--
+./BrainPortal/app/models/cluster_task.rb-    workdir_path   = Pathname.new(self.cluster_shared_dir)
+./BrainPortal/app/models/cluster_task.rb-    dp_cache_path  = Pathname.new(RemoteResource.current_resource.dp_cache_dir)
+./BrainPortal/app/models/cluster_task.rb-    userfile_path  = Pathname.new(userfile.cache_full_path)
+./BrainPortal/app/models/cluster_task.rb:    userfile_path += Pathname.new(userfile_sub_path) if userfile_sub_path.to_s<em>.present?</em>
+./BrainPortal/app/models/cluster_task.rb-
+./BrainPortal/app/models/cluster_task.rb-    # Try to figure out if the DataProvider of userfile is local, or remote.
+./BrainPortal/app/models/cluster_task.rb-    # SmartDataProviders supply the real implementation under a real_provider method;
+--
+</pre>
 </section>
 
 </section>
@@ -744,6 +1086,7 @@ unix commands
 <section id="end">
 
 <section id="final">
+  <h2>The end</h2>
   <em class="regex">/(thank\s+you|thanks)!/i</em>
 </section>
 
@@ -820,6 +1163,12 @@ unix commands
     }
     .reveal pre.medium {
       font-size: 100%;
+    }
+    .reveal pre.supersmall {
+      font-size: 40%;
+    }
+    .reveal pre > code.nomaxheight {
+      max-height: none;
     }
     .reveal .cell {
       display: table-cell;
